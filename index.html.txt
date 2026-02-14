@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<title>Ojos color sol ☀️</title>
+
+<style>
+html,body{
+  margin:0;
+  height:100%;
+  background:#000;
+  overflow:hidden;
+}
+#galaxy-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+
+<body>
+
+<canvas id="galaxy-canvas"></canvas>
+
+<script>
+(function(){
+
+// ================= SETUP =================
+
+const canvas = document.getElementById("galaxy-canvas");
+
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias:true
+});
+
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  2000
+);
+
+camera.position.set(0,20,90);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+
+// ================= SOL CENTRAL =================
+
+const sunGeometry = new THREE.SphereGeometry(12, 32, 32);
+
+const sunMaterial = new THREE.MeshBasicMaterial({
+  color: 0xFFD700,
+  transparent: true,
+  opacity: 0.25
+});
+
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+
+scene.add(sun);
+
+
+// ================= GALAXIA =================
+
+const galaxy = new THREE.Group();
+scene.add(galaxy);
+
+const phrases = [
+  "Sunny ☀️",
+  "Mi princesa 👑",
+  "Mi niña 💛",
+  "Mi flaquita hermosa ✨",
+  "La más guapa 💫",
+  "La mujer de mi vida ❤️",
+  "Mi primer amor 💘",
+  "La mejor decisión 🌹",
+  "Ojos color sol 🌞",
+  "Mi tesoro 💎"
+];
+
+function makeTextTexture(text){
+
+  const c = document.createElement("canvas");
+  c.width = 1024;
+  c.height = 128;
+
+  const g = c.getContext("2d");
+
+  g.font = "bold 60px Arial";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+
+  g.fillStyle = "white";
+  g.shadowColor = "#ffb6ff";
+  g.shadowBlur = 25;
+
+  g.fillText(text,512,64);
+
+  return new THREE.CanvasTexture(c);
+}
+
+
+const count = phrases.length * 10;
+const radius = 75;
+
+for(let i=0;i<count;i++){
+
+  const text = phrases[i % phrases.length];
+
+  const tex = makeTextTexture(text);
+
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: tex,
+      transparent:true
+    })
+  );
+
+  const a = Math.random()*Math.PI*2;
+  const d = Math.random()*radius;
+
+  sprite.position.set(
+    Math.cos(a)*d,
+    (Math.random()-0.5)*22,
+    Math.sin(a)*d
+  );
+
+  sprite.scale.set(18,3,1);
+
+  galaxy.add(sprite);
+}
+
+
+// ================= ESTRELLAS =================
+
+const starsGeo = new THREE.BufferGeometry();
+
+const starCount = 7000;
+
+const pos = new Float32Array(starCount*3);
+
+for(let i=0;i<starCount;i++){
+
+  pos[i*3] = (Math.random()-0.5)*900;
+  pos[i*3+1] = (Math.random()-0.5)*900;
+  pos[i*3+2] = (Math.random()-0.5)*900;
+}
+
+starsGeo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+
+const stars = new THREE.Points(
+  starsGeo,
+  new THREE.PointsMaterial({
+    color:0xffffff,
+    size:0.6
+  })
+);
+
+scene.add(stars);
+
+
+// ================= ANIMACIÓN =================
+
+function animate(){
+
+  requestAnimationFrame(animate);
+
+  const t = performance.now() * 0.001;
+
+  // Rotar galaxia
+  galaxy.rotation.y = t * 0.05;
+
+  // Latido del sol
+  sunMaterial.opacity = 0.2 + 0.08 * Math.sin(t * 3);
+
+  controls.update();
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+
+// ================= RESPONSIVE =================
+
+window.addEventListener("resize",()=>{
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+});
+
+})();
+</script>
+
+</body>
+</html>
